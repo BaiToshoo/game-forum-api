@@ -7,6 +7,8 @@ const { themeController, postController } = require('../controllers');
 
 router.get('/', themeController.getThemes);
 router.post('/', auth(), themeController.createTheme);
+router.delete('/:themeId', auth(), themeController.unsubscribe);
+
 
 router.get('/:themeId', themeController.getTheme);
 router.post('/:themeId', auth(), postController.createPost);

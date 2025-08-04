@@ -44,9 +44,20 @@ function subscribe(req, res, next) {
         .catch(next);
 }
 
+function unsubscribe(req, res, next) {
+    const themeId = req.params.themeId;
+    const { _id: userId } = req.user;
+    themeModel.findByIdAndUpdate({ _id: themeId }, { $pull: { subscribers: userId } }, { new: true })
+        .then(updatedTheme => {
+            res.status(200).json(updatedTheme)
+        })
+        .catch(next);
+}
+
 module.exports = {
     getThemes,
     createTheme,
     getTheme,
     subscribe,
+    unsubscribe
 }

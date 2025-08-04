@@ -6,5 +6,7 @@ const { postController } = require('../controllers');
 // middleware that is specific to this router
 
 router.get('/', postController.getLatestsPosts);
+router.get('/theme/:themeId', auth(), postController.getPostsByTheme);
+
 
 module.exports = router

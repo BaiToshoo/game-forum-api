@@ -15,7 +15,7 @@ const removePassword = (data) => {
 function register(req, res, next) {
     const { tel, email, username, password, repeatPassword } = req.body;
 
-    return userModel.create({ tel, email, username, password })
+    return userModel.create({ tel, email: email.toLowerCase(), username, password })
         .then((createdUser) => {
             createdUser = bsonToJson(createdUser);
             createdUser = removePassword(createdUser);
@@ -46,9 +46,12 @@ function register(req, res, next) {
 function login(req, res, next) {
     const { email, password } = req.body;
 
-    userModel.findOne({ email })
+    userModel.findOne({ email: email.toLowerCase() })
         .then(user => {
-            return Promise.all([user, user ? user.matchPassword(password) : false]);
+            if (!user) {
+                return Promise.reject(new Error('Wrong email or password'));
+            }
+            return Promise.all([user, user.matchPassword(password)]);
         })
         .then(([user, match]) => {
             if (!match) {
