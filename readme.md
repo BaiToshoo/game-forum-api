@@ -15,7 +15,7 @@ Before running this API, make sure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/BaiToshoo/game-forum-api.git
 cd game-forum-api
 ```
 
