@@ -7,7 +7,7 @@ A REST API backend for the Game Forum application built with Node.js, Express, a
 Before running this API, make sure you have the following installed:
 
 - [Node.js](https://nodejs.org/) (version 14 or higher)
-- [MongoDB](https://www.mongodb.com/try/download/community) (running locally or MongoDB Atlas)
+- [Docker](https://www.docker.com/get-started) and Docker Compose
 - [Git](https://git-scm.com/)
 
 ## Getting Started
@@ -25,18 +25,23 @@ cd game-forum-api
 npm install
 ```
 
-### 3. Start MongoDB
+### 3. Setup Database with Docker
 
-Make sure MongoDB is running on your system:
+Start the MongoDB container with Docker Compose:
 
-**Windows:**
 ```bash
-mongod
+docker-compose up -d
 ```
 
-**macOS/Linux:**
+This will start:
+- MongoDB on `http://localhost:27017`
+- MongoDB Express (web interface) on `http://localhost:8081`
+
+**Import test data (if you have existing data):**
+
 ```bash
-sudo systemctl start mongod
+# If you have a backup from local MongoDB
+mongorestore --db game-forum ./backup/game-forum
 ```
 
 ### 4. Start the API
@@ -52,6 +57,16 @@ npm start
 ```
 
 The API will be available at `http://localhost:3000`
+
+**To stop the database:**
+```bash
+docker-compose down
+```
+
+**To stop and remove all data:**
+```bash
+docker-compose down -v
+```
 
 ## Base URL
 
