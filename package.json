@@ -1,26 +1,35 @@
 {
-  "name": "rest-api",
+  "name": "game-forum-api",
   "version": "1.0.0",
-  "description": "REST-api for back-end of React project",
+  "description": "REST API backend for Game Forum application",
   "main": "index.js",
   "scripts": {
     "start": "node .",
     "dev": "nodemon .",
+    "dev:local": "start-dev.bat",
+    "dev:atlas": "start-prod.bat",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "data:load": "mongorestore --db game-forum ./backup/game-forum",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BoogyHS/REST-api.git"
+    "url": "git+https://github.com/BaiToshoo/game-forum-api.git"
   },
   "keywords": [
-    "rest-api"
+    "rest-api",
+    "game-forum",
+    "mongodb",
+    "express",
+    "nodejs"
   ],
-  "author": "BoogyHS",
+  "author": "BaiToshoo",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/BoogyHS/REST-api/issues"
+    "url": "https://github.com/BaiToshoo/game-forum-api/issues"
   },
-  "homepage": "https://github.com/BoogyHS/REST-api#readme",
+  "homepage": "https://github.com/BaiToshoo/game-forum-api#readme",
   "dependencies": {
     "bcrypt": "^5.0.0",
     "cookie-parser": "^1.4.5",

@@ -1,86 +1,88 @@
 # Game Forum REST API
 
 A REST API backend for the Game Forum application built with Node.js, Express, and MongoDB.
+[game-forum](https://github.com/BaiToshoo/game-forum)
 
 ## Prerequisites
 
-Before running this API, make sure you have the following installed:
-
-- [Node.js](https://nodejs.org/) (version 14 or higher)
+- [Node.js](https://nodejs.org/) (version 14+)
 - [Docker](https://www.docker.com/get-started) and Docker Compose
 - [Git](https://git-scm.com/)
 
 ## Getting Started
 
-### 1. Clone the Repository
-
+### Step 1: Clone and Install
 ```bash
 git clone https://github.com/BaiToshoo/game-forum-api.git
 cd game-forum-api
-```
-
-### 2. Install Dependencies
-
-```bash
 npm install
 ```
 
-### 3. Setup Database with Docker
+### Step 2: Start Local Development
+```bash
+npm run dev:local
+```
+This will automatically:
+- Start MongoDB containers
+- Wait for database to be ready
+- Start the API server
 
-Start the MongoDB container with Docker Compose:
+### Step 3: Load Sample Data
+```bash
+# Open a new terminal and run:
+mongorestore --host localhost:27017 --db game-forum ./backup/game-forum
+```
+This loads sample themes, posts, and a test user from the backup folder.
+
+### Step 4: Test the API
+- **View MongoDB:** http://localhost:8081 (admin/admin123)
+- **Get all themes:** http://localhost:3000/api/themes
+- **Get all posts:** http://localhost:3000/api/posts
+
+✅ **Your API is now running at:** http://localhost:3000/api
+
+### Alternative: Production Testing
+```bash
+npm run dev:atlas
+```
+This connects to the production database (MongoDB Atlas) for testing.
+
+## What You Get
+
+After loading the sample data, you'll have:
+- **Test User:** (test@gmail.com/test123)
+- **Themes:** Gaming discussion topics
+- **Posts:** Comments and discussions in themes
+
+## Features
+
+- User registration and authentication
+- Create and browse gaming discussion themes  
+- Post comments in themes
+- Like/unlike posts
+- User profiles and subscriptions
+
+## Useful Commands
 
 ```bash
-docker-compose up -d
+# Load sample data into local database
+mongorestore --host localhost:27017 --db game-forum ./backup/game-forum
+
+# Stop containers
+npm run docker:down
+
+# Remove all data and start fresh
+npm run docker:down
+docker volume rm game-forum-api_mongodb_data
+
+# View running containers
+docker ps
 ```
 
-This will start:
-- MongoDB on `http://localhost:27017`
-- MongoDB Express (web interface) on `http://localhost:8081`
+## Production Version
 
-**Import test data (if you have existing data):**
+Live API: https://game-forum-api.vercel.app/api
 
-```bash
-# If you have a backup from local MongoDB
-mongorestore --db game-forum ./backup/game-forum
-```
+## Related Projects
 
-### 4. Start the API
-
-**Development mode (with auto-restart):**
-```bash
-npm run dev
-```
-
-**Production mode:**
-```bash
-npm start
-```
-
-The API will be available at `http://localhost:3000`
-
-**To stop the database:**
-```bash
-docker-compose down
-```
-
-**To stop and remove all data:**
-```bash
-docker-compose down -v
-```
-
-## Base URL
-
-```
-http://localhost:3000/api
-```
-
-## Authentication
-
-## Related Repositories
-
-- **Frontend:** [game-forum](https://github.com/your-username/game-forum) - Angular frontend application
-- **API:** [game-forum-api](https://github.com/your-username/game-forum-api) - This REST API backend
-
-## License
-
-This project is part of an educational course and is intended for learning purposes.
+- **Frontend:** [game-forum](https://github.com/BaiToshoo/game-forum) - Angular frontend
