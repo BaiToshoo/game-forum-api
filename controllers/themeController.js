@@ -28,8 +28,17 @@ function createTheme(req, res, next) {
 
     themeModel.create({ themeName, userId, subscribers: [userId] })
         .then(theme => {
-            newPost(postText, userId, theme._id)
-                .then(([_, updatedTheme]) => res.status(200).json(updatedTheme))
+            return newPost(postText, userId, theme._id)
+                .then(createdPost => {
+                    return themeModel.findById(theme._id)
+                        .populate({
+                            path: 'posts',
+                            populate: {
+                                path: 'userId'
+                            }
+                        });
+                })
+                .then(updatedTheme => res.status(200).json(updatedTheme));
         })
         .catch(next);
 }
