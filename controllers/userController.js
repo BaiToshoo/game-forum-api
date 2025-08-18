@@ -1,4 +1,5 @@
 const User = require('../models/userModel');
+const { themeModel, postModel, tokenBlacklistModel } = require('../models');
 
 const userController = {
     async getAllUsers(req, res) {
@@ -8,7 +9,7 @@ const userController = {
             const skip = (page - 1) * limit;
 
             const users = await User.find({})
-                .select('-password') // Exclude password
+                .select('-password')
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit);
@@ -26,7 +27,6 @@ const userController = {
                 }
             });
         } catch (error) {
-            console.error('Get all users error:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error fetching users'
@@ -52,7 +52,6 @@ const userController = {
                 user: user
             });
         } catch (error) {
-            console.error('Get user by ID error:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error fetching user'
@@ -74,7 +73,6 @@ const userController = {
                 });
             }
 
-            // Search by username or email (case insensitive)
             const searchRegex = new RegExp(query, 'i');
             
             const users = await User.find({
@@ -95,10 +93,90 @@ const userController = {
                 count: users.length
             });
         } catch (error) {
-            console.error('Search users error:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error searching users'
+            });
+        }
+    },
+
+    async deleteUser(req, res) {
+        try {
+            const userId = req.params.id;
+            const currentUser = req.user;
+
+            const isAdmin = currentUser.email === 'admin@gameforum.com';
+            
+            if (!isAdmin) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Only administrators can delete user accounts'
+                });
+            }
+
+            const userToDelete = await User.findById(userId);
+            if (!userToDelete) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'User not found'
+                });
+            }
+
+            if (userId === currentUser._id.toString()) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Administrators cannot delete their own account'
+                });
+            }
+
+
+            const userThemes = await themeModel.find({ userId });
+            for (const theme of userThemes) {
+                await postModel.deleteMany({ themeId: theme._id });
+                
+                await User.updateMany(
+                    { themes: theme._id },
+                    { $pull: { themes: theme._id } }
+                );
+            }
+            await themeModel.deleteMany({ userId });
+
+            const userPosts = await postModel.find({ userId });
+            const userPostIds = userPosts.map(post => post._id);
+            
+            await themeModel.updateMany(
+                { posts: { $in: userPostIds } },
+                { $pull: { posts: { $in: userPostIds } } }
+            );
+            
+            await User.updateMany(
+                { posts: { $in: userPostIds } },
+                { $pull: { posts: { $in: userPostIds } } }
+            );
+            
+            await postModel.deleteMany({ userId });
+
+            await postModel.updateMany(
+                { likes: userId },
+                { $pull: { likes: userId } }
+            );
+
+            await themeModel.updateMany(
+                { subscribers: userId },
+                { $pull: { subscribers: userId } }
+            );
+
+            await User.findByIdAndDelete(userId);
+
+            res.json({
+                success: true,
+                message: `User '${userToDelete.username}' deleted successfully by admin`
+            });
+
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error deleting user account'
             });
         }
     }

@@ -1,5 +1,4 @@
 const { userModel, themeModel, postModel } = require('../models');
-const mongoose = require('mongoose');
 
 function newPost(text, userId, themeId) {
     return postModel.create({ text, userId, themeId })
@@ -7,7 +6,7 @@ function newPost(text, userId, themeId) {
             return Promise.all([
                 userModel.updateOne({ _id: userId }, { $push: { posts: post._id }, $addToSet: { themes: themeId } }),
                 themeModel.findOneAndUpdate({ _id: themeId }, { $push: { posts: post._id }, $addToSet: { subscribers: userId } }, { new: true })
-            ]).then(() => post); // Return just the post after updates
+            ]).then(() => post);
         });
 }
 
@@ -18,9 +17,7 @@ function getLatestsPosts(req, res, next) {
         .sort({ created_at: -1 })
         .limit(limit)
         .populate('themeId userId')
-        .then(posts => {
-            res.status(200).json(posts)
-        })
+        .then(posts => res.status(200).json(posts))
         .catch(next);
 }
 
@@ -88,19 +85,42 @@ function getPostsByTheme(req, res, next) {
 
 function deletePost(req, res, next) {
     const { postId, themeId } = req.params;
-    const { _id: userId } = req.user;
+    const currentUser = req.user;
+    const { _id: userId } = currentUser;
 
-    Promise.all([
-        postModel.findOneAndDelete({ _id: postId, userId }),
-        userModel.findOneAndUpdate({ _id: userId }, { $pull: { posts: postId } }),
-        themeModel.findOneAndUpdate({ _id: themeId }, { $pull: { posts: postId } }),
-    ])
-        .then(([deletedOne, _, __]) => {
-            if (deletedOne) {
-                res.status(200).json(deletedOne)
-            } else {
-                res.status(401).json({ message: `Not allowed!` });
+    const isAdmin = currentUser.email === 'admin@gameforum.com';
+
+    const deleteCondition = isAdmin ? { _id: postId } : { _id: postId, userId };
+
+    postModel.findById(postId)
+        .then(post => {
+            if (!post) {
+                return res.status(404).json({ message: 'Post not found' });
             }
+
+            const postOwnerId = post.userId;
+
+            return Promise.all([
+                postModel.findOneAndDelete(deleteCondition),
+                userModel.findOneAndUpdate({ _id: postOwnerId }, { $pull: { posts: postId } }),
+                themeModel.findOneAndUpdate({ _id: themeId }, { $pull: { posts: postId } }),
+            ])
+                .then(([deletedPost, _, __]) => {
+                    if (deletedPost) {
+                        const message = isAdmin 
+                            ? `Post deleted successfully by admin`
+                            : `Post deleted successfully`;
+                        
+                        res.status(200).json({
+                            message: isAdmin ? 'Post deleted by admin' : 'Post deleted successfully'
+                        });
+                    } else {
+                        const errorMessage = isAdmin 
+                            ? 'Post not found'
+                            : 'Not allowed! You can only delete your own posts';
+                        res.status(403).json({ message: errorMessage });
+                    }
+                });
         })
         .catch(next);
 }
